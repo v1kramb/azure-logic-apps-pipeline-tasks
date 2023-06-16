@@ -1,0 +1,35 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+    "id": "2be6db92-a9be-49e9-862b-29954fded4e5",
+    "name": "AzureLogicAppsStandardBuild",
+    "friendlyName": "Build Standard Logic App",
+    "description": "Build standard Logic Apps for use in CI pipeline",
+    "author": "Microsoft Corporation",
+    "helpMarkDown": "",
+    "category": "Build",
+    "version": {
+        "Major": 0,
+        "Minor": 2,
+        "Patch": 0
+    },
+    "instanceNameFormat": "Azure Logic Apps Build",
+    "inputs": [
+        {
+            "name": "sourceFolder",
+            "type": "filePath",
+            "label": "Source Folder",
+            "required": true,
+            "helpMarkDown": "Source folder for Logic App."
+        }
+    ],
+    "execution": {
+        "Node": {
+            "target": "azurelogicappsstandardbuild.js"
+        }
+    },
+    "messages": {
+        "CopyFilesError": "Failed to copy files to target folder.",
+        "ArchiveFilesError": "Failed to create project zip.",
+        "PublishPipelineArtifactError": "Failed to publish project zip artifact."
+    }
+}

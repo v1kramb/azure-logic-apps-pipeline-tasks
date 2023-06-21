@@ -39,7 +39,7 @@ export class CopyFiles {
     }
 
     public async main(): Promise<void> {
-        tl.setResourcePath(path.join(__dirname, 'task.json'));
+        // tl.setResourcePath(path.join(__dirname, 'task.json'));
 
         const findOptions: tl.FindOptions = {
             allowBrokenSymbolicLinks: true,

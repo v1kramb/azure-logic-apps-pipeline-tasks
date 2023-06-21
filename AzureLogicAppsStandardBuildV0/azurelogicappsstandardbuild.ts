@@ -12,7 +12,7 @@ export class AzureLogicAppsStandardBuild {
     // Logic App
     private static sourceFolder: string ;
     //private static logicAppCIArtifactName: string | undefined;
-
+    // TODO: Consider making output directory its own input here
 
     public static async main(): Promise<void> {
         try {
@@ -44,34 +44,6 @@ export class AzureLogicAppsStandardBuild {
             tl.setResult(tl.TaskResult.Failed, err.message);
         }
     }
-
-    // private static async copyFiles() {
-
-
-    //     // const result = await tl.exec('CopyFiles@2', 
-    //     //     {
-    //     //         sourceFolder: this.sourceFolder, //path.join(this.defaultWorkingDir, this.sourceFolder),
-    //     //         contents: '**', // everything
-    //     //         targetFolder: 'project_output'
-    //     //     });
-        
-    //     // if (result === tl.TaskResult.Failed) throw new Error(tl.loc("CopyFilesError"));
-    //     console.log("Created project folder.");
-    // }
-
-    // private static async archiveFiles() {
-    //     const result = await tl.exec('ArchiveFiles@2', 
-    //         {
-    //             rootFolderOrFile: this.sourceFolder, // path.join(this.defaultWorkingDir, 'project_output'),
-    //             includeRootFolder: false,
-    //             archiveType: 'zip',
-    //             archiveFile: path.join(this.artifactStagingDir, this.buildId + '.zip'),
-    //             replaceExistingArchive: true
-    //         });
-        
-    //     if (result === tl.TaskResult.Failed) throw new Error(tl.loc('ArchiveFilesError'));
-    //     console.log('Zipped project folder.');
-    // }
 }
 
 AzureLogicAppsStandardBuild.main();

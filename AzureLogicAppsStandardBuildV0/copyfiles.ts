@@ -1,22 +1,19 @@
 // Adapted from: https://github.com/microsoft/azure-pipelines-tasks/blob/master/Tasks/CopyFilesV2/copyfiles.ts
-
 import fs = require('fs');
 import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');
-import { RetryOptions, RetryHelper } from './retryhelper';
 
-// TODO:
 /*
 SourceFolder
 Contents: '**'
 TargetFolder
 #CleanTargetFolder: false
 #OverWrite: false
-#flattenFolders: false TODO: I messed this one up
+#flattenFolders: false
 #preserveTimestamp: false
-#retryCount: '0' TODO:
-#delayBetweenRetries: '1000'' TODO:
-#ignoreMakeDirErrors: false TODO:
+#retryCount: '0'
+#delayBetweenRetries: '1000''
+#ignoreMakeDirErrors: false
 */
 
 export class CopyFiles {
@@ -64,12 +61,6 @@ export class CopyFiles {
         let contents: string[] = ["**"];
         let targetFolder: string = "project_output"; // TODO: may be better to set up temporary UID
 
-        const retryOptions: RetryOptions = {
-            timeoutBetweenRetries: 300, // milliseconds
-            numberOfRetries: 3
-        };
-        const retryHelper = new RetryHelper(retryOptions);
-
         this.sourceFolder = path.normalize(this.sourceFolder);
         let allPaths: string[] = tl.find(this.sourceFolder, findOptions);
         let sourceFolderPattern = this.sourceFolder.replace('[', '[[]');
@@ -78,52 +69,35 @@ export class CopyFiles {
 
         if (matchedFiles.length > 0) {
             // Check that target folder doesn't already exist
-            const targetFolderStats: fs.Stats = await retryHelper.RunWithRetry<fs.Stats>(
-                () => this.stats(targetFolder),
-                `stats for ${targetFolder}`
-            );
+            const targetFolderStats: fs.Stats = this.stats(targetFolder);
             if (targetFolderStats)
                 throw new Error(`Target folder ${targetFolder} already exists.`);
 
-            await retryHelper.RunWithRetry(() =>
-                this.makeDirP(targetFolder),
-                `makeDirP for ${targetFolder}`
-            );
+            this.makeDirP(targetFolder);
 
             try {
                 let createdFolders: { [folder: string]: boolean } = {};
                 for (let file of matchedFiles) {
-                    let relativePath = path.basename(file);
+                    let relativePath = file.substring(this.sourceFolder.length);
+                    if (relativePath.startsWith(path.sep))
+                        relativePath = relativePath.substring(1);
+
                     let targetPath = path.join(targetFolder, relativePath);
                     let targetDir = path.dirname(targetPath);
 
                     if (!createdFolders[targetDir]) {
-                        await retryHelper.RunWithRetry(() => 
-                            this.makeDirP(targetDir),
-                            `makeDirP for ${targetDir}`
-                        );
+                        this.makeDirP(targetDir);
                         createdFolders[targetDir] = true;
                     }
 
-                    let targetStats: fs.Stats = await retryHelper.RunWithRetry<fs.Stats>(() => 
-                        this.stats(targetPath),
-                        `Stats for ${targetPath}`
-                    );
-
+                    let targetStats: fs.Stats = this.stats(targetPath);
                     if (targetStats && targetStats.isDirectory())
                         throw new Error(`Target "${targetPath}" is a directory`);
                     
-                    if (process.platform == 'win32' && targetStats && (targetStats.mode & 146) != 146) {
-                        await retryHelper.RunWithRetry(() =>
-                            fs.chmodSync(targetPath, targetStats.mode | 146),
-                            `chmodSync for ${targetPath}`
-                        );
-                    }
-
-                    await retryHelper.RunWithRetry(() => 
-                        tl.cp(file, targetPath, "-f"),
-                        `copy ${file} to ${targetPath}`
-                    );
+                    if (process.platform == 'win32' && targetStats && (targetStats.mode & 146) != 146) 
+                        fs.chmodSync(targetPath, targetStats.mode | 146);
+                    
+                    tl.cp(file, targetPath, "-f");
                 }
             } catch (err) {
                 tl.setResult(tl.TaskResult.Failed, err);

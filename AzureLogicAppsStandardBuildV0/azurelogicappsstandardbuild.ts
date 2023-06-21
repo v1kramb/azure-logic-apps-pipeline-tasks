@@ -3,7 +3,7 @@ import { CopyFiles } from './copyfiles';
 import { ArchiveFiles } from './archivefiles';
 import tl = require('azure-pipelines-task-lib/task');
 
-export class index {
+export class AzureLogicAppsStandardBuild {
     // Azure DevOps
     private static buildId: string;
     private static defaultWorkingDir: string;
@@ -29,9 +29,16 @@ export class index {
 
             // Copy files
             const fileCopier = new CopyFiles(this.sourceFolder);
+            try {
+                fileCopier.main();
+            } catch (err) {
+                tl.setResult(tl.TaskResult.Failed, err);
+            }
+            console.log("Copied files.");
 
             // Archive files
             const fileArchiver = new ArchiveFiles(this.sourceFolder, this.artifactStagingDir, this.buildId);
+            
         }
         catch (err) {
             tl.setResult(tl.TaskResult.Failed, err.message);
@@ -67,4 +74,4 @@ export class index {
     // }
 }
 
-index.main();
+AzureLogicAppsStandardBuild.main();

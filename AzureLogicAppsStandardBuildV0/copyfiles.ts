@@ -5,6 +5,20 @@ import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');
 import { RetryOptions, RetryHelper } from './retryhelper';
 
+// TODO:
+/*
+SourceFolder
+Contents: '**'
+TargetFolder
+#CleanTargetFolder: false
+#OverWrite: false
+#flattenFolders: false TODO: I messed this one up
+#preserveTimestamp: false
+#retryCount: '0' TODO:
+#delayBetweenRetries: '1000'' TODO:
+#ignoreMakeDirErrors: false TODO:
+*/
+
 export class CopyFiles {
     private sourceFolder: string;
 

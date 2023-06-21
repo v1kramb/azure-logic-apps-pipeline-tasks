@@ -11,8 +11,11 @@ import utils = require('./utils.js');
 rootFolderOrFile: '$(System.DefaultWorkingDirectory)/project_output'
 includeRootFolder: false
 archiveType: 'zip'
+sevenZipCompression: 'normal'
 archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
 replaceExistingArchive: true
+verbose: false
+quiet: false
 */
 
 export class ArchiveFiles {
@@ -35,6 +38,15 @@ export class ArchiveFiles {
         this.archiveFile = path.normalize(path.join(this.stagingDir, this.buildId + '.zip').trim());
     }
 
+    private getSevenZipLocation(): string {
+        if (process.platform == 'win32') {
+            return path.join(__dirname, '7zip/7z.exe');
+        } 
+        else {
+            return tl.which('7z', true);
+        }
+    }
+
     private findFiles(): string[] {
         var fullPaths: string[] = tl.ls('-A', [this.rootFolderOrFile]);
         var baseNames: string[] = [];
@@ -55,8 +67,8 @@ export class ArchiveFiles {
         return result;
     }
 
-    function createFileList(files: string[]): string {
-        const tempDirectory: string = tl.getVariable('Agent.TempDirectory');
+    private createFileList(files: string[]): string {
+        const tempDirectory: string = tl.getVariable('Agent.TempDirectory')!;
         const fileName: string = Math.random().toString(36).replace('0.', '');
         const file: string = path.resolve(tempDirectory, fileName);
     
@@ -77,92 +89,53 @@ export class ArchiveFiles {
         return file;
     }
     
-    function getOptions(): tr.IExecSyncOptions {
+    private getOptions(): tr.IExecSyncOptions {
         var dirName: string;
-        if (includeRootFolder) {
-            dirName = path.dirname(rootFolderOrFile);
-            tl.debug("cwd (include root folder)= " + dirName);
-            return { cwd: dirName, outStream: process.stdout as stream.Writable, errStream: process.stderr as stream.Writable };
+        var stats: tl.FsStats = tl.stats(this.rootFolderOrFile);
+        if (stats.isFile()) {
+            dirName = path.dirname(this.rootFolderOrFile);
         } else {
-            var stats: tl.FsStats = tl.stats(rootFolderOrFile);
-            if (stats.isFile()) {
-                dirName = path.dirname(rootFolderOrFile);
-            } else {
-                dirName = rootFolderOrFile;
-            }
-            tl.debug("cwd (exclude root folder)= " + dirName);
-            return { cwd: dirName, outStream: process.stdout as stream.Writable, errStream: process.stderr as stream.Writable };
+            dirName = this.rootFolderOrFile;
         }
+        tl.debug("cwd (exclude root folder)= " + dirName);
+        return { cwd: dirName, outStream: process.stdout as stream.Writable, errStream: process.stderr as stream.Writable };
     }
 
-    function sevenZipArchive(archive: string, compression: string, files: string[]) {
+    private sevenZipArchive(archive: string, compression: string, files: string[]) {
         tl.debug('Creating archive with 7-zip: ' + archive);
-        var sevenZip = tl.tool(getSevenZipLocation());
+        var sevenZip = tl.tool(this.getSevenZipLocation());
         sevenZip.arg('a');
         sevenZip.arg('-t' + compression);
-        if (verbose) {
-            // Set highest logging level
-            sevenZip.arg('-bb3');
-        }
     
-        const sevenZipCompression = tl.getInput('sevenZipCompression', false);
-        if (sevenZipCompression) {
-            sevenZip.arg('-mx=' + mapSevenZipCompressionLevel(sevenZipCompression));
-        }
+        // const sevenZipCompression = tl.getInput('sevenZipCompression', false);
+        // if (sevenZipCompression) {
+        //     sevenZip.arg('-mx=5');
+        // }
     
         sevenZip.arg(archive);
     
-        const fileList: string = createFileList(files);
+        const fileList: string = this.createFileList(files);
         sevenZip.arg('@' + fileList);
     
-        return handleExecResult(sevenZip.execSync(getOptions()), archive);
-    }
-    
-    // map from YAML-friendly value to 7-Zip numeric value
-    function mapSevenZipCompressionLevel(sevenZipCompression: string) {    
-        switch (sevenZipCompression.toLowerCase()) {
-            case "ultra":
-                return "9";
-            case "maximum":
-                return "7";
-            case "normal":
-                return "5";
-            case "fast":
-                return "3";
-            case "fastest":
-                return "1";
-            case "none":
-                return "0";
-            default:
-                return "5";
-        }
+        return this.handleExecResult(sevenZip.execSync(this.getOptions()), archive);
     }
     
     // linux & mac only
-    function zipArchive(archive: string, files: string[]) {
+    private zipArchive(archive: string, files: string[]) {
         tl.debug('Creating archive with zip: ' + archive);
-        if (typeof xpZipLocation == "undefined") {
-            xpZipLocation = tl.which('zip', true);
-        }
-        var zip = tl.tool(xpZipLocation);
+        var zip = tl.tool(tl.which('zip', true));
         zip.arg('-r');
-        // Verbose gets priority over quiet
-        if (verbose) {
-            zip.arg('-v');
-        }
-        else if (quiet) {
-            zip.arg('-q');
-        }
+        zip.arg('-q');
         zip.arg(archive);
         for (var i = 0; i < files.length; i++) {
             zip.arg(files[i]);
             console.log(tl.loc('Filename', files[i]));
         }
-        return handleExecResult(zip.execSync(getOptions()), archive);
+        return this.handleExecResult(zip.execSync(this.getOptions()), archive);
     }
     
 
-    private handleExecResult(execResult, archive) {
+    private handleExecResult(execResult: tr.IExecSyncResult, archive: string) {
         if (execResult.code != tl.TaskResult.Succeeded) {
             tl.debug('execResult: ' + JSON.stringify(execResult));
             throw new Error(tl.loc('ArchiveCreationFailedWithError', archive, execResult.code, execResult.stdout, execResult.stderr, execResult.error));
@@ -183,9 +156,9 @@ export class ArchiveFiles {
             // tl.setResourcePath(path.join(__dirname, 'task.json'));
             if (tl.exist(this.archiveFile)) {
                 try {
-                    var stats: tl.FsStats = tl.stats(archiveFile);
+                    var stats: tl.FsStats = tl.stats(this.archiveFile);
                     if (stats.isFile()) {
-                        console.log(tl.loc('RemoveBeforeCreation', archiveFile));
+                        console.log(tl.loc('RemoveBeforeCreation', this.archiveFile));
                         tl.rmRF(this.archiveFile);
                     } else {
                         throw new Error('ArchiveFileExistsButNotAFile');

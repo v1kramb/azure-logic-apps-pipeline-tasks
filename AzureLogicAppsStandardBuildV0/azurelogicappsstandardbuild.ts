@@ -37,8 +37,8 @@ export class AzureLogicAppsStandardBuild {
             console.log("Copied files.");
 
             // Archive files
-            const fileArchiver = new ArchiveFiles(this.sourceFolder, this.artifactStagingDir, this.buildId);
-            
+            const fileArchiver = new ArchiveFiles(this.defaultWorkingDir, this.artifactStagingDir, this.buildId);
+
         }
         catch (err) {
             tl.setResult(tl.TaskResult.Failed, err.message);

@@ -6,10 +6,10 @@
     "description": "Build standard Logic Apps for use in CI pipeline",
     "author": "Microsoft Corporation",
     "helpMarkDown": "",
-    "category": "Build",
+    "category": "Utility",
     "version": {
         "Major": 0,
-        "Minor": 2,
+        "Minor": 3,
         "Patch": 0
     },
     "instanceNameFormat": "Azure Logic Apps Build",
@@ -30,6 +30,8 @@
     "messages": {
         "CopyFilesError": "Failed to copy files to target folder.",
         "ArchiveFilesError": "Failed to create project zip.",
-        "PublishPipelineArtifactError": "Failed to publish project zip artifact."
+        "ArchiveCreationFailedWithError": "Archive creation failed for archive file: %s \ncode: %d \nstdout: %s \nstderr: %s \nerror: %s;",
+        "Filename": "files=%s",
+        "RemoveBeforeCreation": "Removing existing archive file before creation: %s"
     }
 }

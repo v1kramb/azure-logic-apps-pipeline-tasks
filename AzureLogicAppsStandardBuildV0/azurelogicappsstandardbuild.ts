@@ -38,7 +38,12 @@ export class AzureLogicAppsStandardBuild {
 
             // Archive files
             const fileArchiver = new ArchiveFiles(this.defaultWorkingDir, this.artifactStagingDir, this.buildId);
-
+            try {
+                fileArchiver.main();
+            } catch (err) {
+                tl.setResult(tl.TaskResult.Failed, err);
+            }
+            console.log("Archived files.");
         }
         catch (err) {
             tl.setResult(tl.TaskResult.Failed, err.message);

@@ -7,14 +7,8 @@ import stream = require("stream");
 import utils = require('./utils.js');
 
 /*
-rootFolderOrFile: '$(System.DefaultWorkingDirectory)/project_output'
 includeRootFolder: false
-archiveType: 'zip'
-sevenZipCompression: 'normal'
-archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
 replaceExistingArchive: true
-verbose: false
-quiet: false
 */
 
 export class ArchiveFiles {
@@ -32,9 +26,9 @@ export class ArchiveFiles {
 
         this.rootFolderOrFile = this.makeAbsolute(path.normalize(path.join(
             this.defaultWorkingDir, 'project_output'
-        ).trim()));
+        ).trim())); // $(System.DefaultWorkingDirectory)/project_output
 
-        this.archiveFile = path.normalize(path.join(this.stagingDir, this.buildId + '.zip').trim());
+        this.archiveFile = path.normalize(path.join(this.stagingDir, this.buildId + '.zip').trim()); // $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
     }
 
     private getSevenZipLocation(): string {
@@ -105,12 +99,7 @@ export class ArchiveFiles {
         var sevenZip = tl.tool(this.getSevenZipLocation());
         sevenZip.arg('a');
         sevenZip.arg('-t' + compression);
-    
-        // const sevenZipCompression = tl.getInput('sevenZipCompression', false);
-        // if (sevenZipCompression) {
-        //     sevenZip.arg('-mx=5');
-        // }
-    
+        sevenZip.arg('-mx=5');
         sevenZip.arg(archive);
     
         const fileList: string = this.createFileList(files);
@@ -119,7 +108,7 @@ export class ArchiveFiles {
         return this.handleExecResult(sevenZip.execSync(this.getOptions()), archive);
     }
     
-    // linux & mac only
+    // Linux & Mac only
     private zipArchive(archive: string, files: string[]) {
         tl.debug('Creating archive with zip: ' + archive);
         var zip = tl.tool(tl.which('zip', true));
@@ -152,7 +141,8 @@ export class ArchiveFiles {
 
     public async main() {
         try {
-            // tl.setResourcePath(path.join(__dirname, 'task.json'));
+            tl.setResourcePath(path.join(__dirname, 'task.json'));
+            
             if (tl.exist(this.archiveFile)) {
                 try {
                     var stats: tl.FsStats = tl.stats(this.archiveFile);
@@ -174,7 +164,7 @@ export class ArchiveFiles {
             tl.debug(`Listing all ${files.length} files to archive:`);
             files.forEach(file => tl.debug(file));
 
-            //ensure output folder exists
+            // Ensure output folder exists
             var destinationFolder = path.dirname(this.archiveFile);
             tl.debug("Checking for archive destination folder:" + destinationFolder);
             if (!tl.exist(destinationFolder)) {

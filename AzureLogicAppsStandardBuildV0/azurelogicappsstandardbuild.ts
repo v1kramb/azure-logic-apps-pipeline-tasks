@@ -10,9 +10,7 @@ export class AzureLogicAppsStandardBuild {
     private static artifactStagingDir: string;
 
     // Logic App
-    private static sourceFolder: string ;
-    //private static logicAppCIArtifactName: string | undefined;
-    // TODO: Consider making output directory its own input here
+    private static sourceFolder: string;
 
     public static async main(): Promise<void> {
         try {
@@ -24,7 +22,7 @@ export class AzureLogicAppsStandardBuild {
             this.defaultWorkingDir = tl.getVariable('System.DefaultWorkingDirectory')!;
             this.artifactStagingDir = tl.getVariable('Build.ArtifactStagingDirectory')!;  
             
-            // Get input
+            // Get input for source folder
             this.sourceFolder = tl.getPathInputRequired('sourceFolder');
 
             // Copy files

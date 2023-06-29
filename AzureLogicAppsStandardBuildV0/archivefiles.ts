@@ -6,11 +6,6 @@ import fs = require('fs');
 import stream = require("stream");
 import utils = require('./utils.js');
 
-/*
-includeRootFolder: false
-replaceExistingArchive: true
-*/
-
 export class ArchiveFiles {
     private defaultWorkingDir: string;
     private stagingDir: string;
@@ -40,6 +35,10 @@ export class ArchiveFiles {
         }
     }
 
+    /**
+     * Finds files in root folder. Excludes root folder itself.
+     * @returns string array of files
+     */
     private findFiles(): string[] {
         var fullPaths: string[] = tl.ls('-A', [this.rootFolderOrFile]);
         var baseNames: string[] = [];
@@ -49,6 +48,10 @@ export class ArchiveFiles {
         return baseNames;
     }
 
+    /**
+     * Converts normalized path to absolute path
+     * @returns absolute path
+     */
     private makeAbsolute(normalizedPath: string): string {
         tl.debug('makeAbsolute:' + normalizedPath);
     
@@ -60,6 +63,10 @@ export class ArchiveFiles {
         return result;
     }
 
+    /**
+     * Creates file list which is called in sevenZipArchive()
+     * @returns string array of files
+     */
     private createFileList(files: string[]): string {
         const tempDirectory: string = tl.getVariable('Agent.TempDirectory')!;
         const fileName: string = Math.random().toString(36).replace('0.', '');
@@ -99,7 +106,7 @@ export class ArchiveFiles {
         var sevenZip = tl.tool(this.getSevenZipLocation());
         sevenZip.arg('a');
         sevenZip.arg('-t' + compression);
-        sevenZip.arg('-mx=5');
+        sevenZip.arg('-mx=5'); // normal compression (default)
         sevenZip.arg(archive);
     
         const fileList: string = this.createFileList(files);
@@ -130,6 +137,10 @@ export class ArchiveFiles {
         }
     }
 
+    /**
+     * Handle zip archiving utility based on whether system is Windows vs Mac/Linux
+     * @param files: files to be copied
+     */
     private createArchive(files: string[]) {
         if (process.platform == 'win32') {
             this.sevenZipArchive(this.archiveFile, 'zip', files);
@@ -143,6 +154,7 @@ export class ArchiveFiles {
         try {
             tl.setResourcePath(path.join(__dirname, 'task.json'));
             
+            // Replace existing archive if it exists
             if (tl.exist(this.archiveFile)) {
                 try {
                     var stats: tl.FsStats = tl.stats(this.archiveFile);
@@ -150,10 +162,10 @@ export class ArchiveFiles {
                         console.log(tl.loc('RemoveBeforeCreation', this.archiveFile));
                         tl.rmRF(this.archiveFile);
                     } else {
-                        throw new Error('ArchiveFileExistsButNotAFile');
+                        throw new Error(tl.loc('ArchiveFileExistsButNotAFile', this.archiveFile));
                     }
                 } catch (e) {
-                    throw new Error('FailedArchiveFile');
+                    throw new Error(tl.loc('FailedArchiveFile', this.archiveFile, e));
                 }
             }
 

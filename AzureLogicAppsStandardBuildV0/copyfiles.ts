@@ -69,7 +69,7 @@ export class CopyFiles {
         };
 
         let contents: string[] = ["**"]; // glob pattern matching - meant to match all paths in source directory
-        let targetFolder: string = "project_output"; // TODO: likely better to append temporary UID in driver file
+        let targetFolder: string = "project_output"; // likely better to append temporary UID in driver file
 
         this.sourceFolder = path.normalize(this.sourceFolder); // important for determing relative paths of files later on
         let allPaths: string[] = tl.find(this.sourceFolder, findOptions);

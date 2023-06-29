@@ -32,6 +32,11 @@
         "ArchiveFilesError": "Failed to create project zip.",
         "ArchiveCreationFailedWithError": "Archive creation failed for archive file: %s \ncode: %d \nstdout: %s \nstderr: %s \nerror: %s;",
         "Filename": "files=%s",
-        "RemoveBeforeCreation": "Removing existing archive file before creation: %s"
+        "RemoveBeforeCreation": "Removing existing archive file before creation: %s",
+        "ArchiveFileExistsButNotAFile": "Specified archive file: %s already exists and is not a file.",
+        "FailedArchiveFile": "Specified archive file: %s cannot be created because it cannot be accessed: %s",
+        "FoundNFiles": "Found %d files",
+        "ArchivingFile": "Archiving file: %s",
+        "MoreFiles": "... %d more ..."
     }
 }

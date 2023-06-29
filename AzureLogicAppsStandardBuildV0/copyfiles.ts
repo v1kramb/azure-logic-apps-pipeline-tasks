@@ -61,7 +61,7 @@ export class CopyFiles {
         };
 
         let contents: string[] = ["**"]; // glob pattern matching - meant to match all paths in source directory
-        let targetFolder: string = "project_output"; // likely better to append temporary UID in driver file
+        let targetFolder: string = "project_output"; // Follows from current docs. May be better to use format specific to Logic Apps or temporary UID
 
         this.sourceFolder = path.normalize(this.sourceFolder); // important for determing relative paths of files later on
         let allPaths: string[] = tl.find(this.sourceFolder, findOptions);

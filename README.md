@@ -1,6 +1,6 @@
 # Azure Logic Apps Standard Build & Release Tasks
 
-This extension provides automated Build and Release tasks for Azure Logic Apps Standard.
+Hello! This extension provides automated Build and Release tasks for Azure Logic Apps Standard.
 
 AzureLogicAppsStandardBuild - consolides copy/zip for Logic App source folder
 

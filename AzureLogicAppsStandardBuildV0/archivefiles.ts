@@ -89,6 +89,10 @@ export class ArchiveFiles {
         return file;
     }
     
+    /**
+     * Equips zipping utilities with working directory, outstream, and errstream.
+     * @returns map containing cwd, outstream, errstream
+     */
     private getOptions(): tr.IExecSyncOptions {
         var dirName: string;
         var stats: tl.FsStats = tl.stats(this.rootFolderOrFile);

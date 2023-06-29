@@ -19,7 +19,7 @@
             "type": "filePath",
             "label": "Source Folder",
             "required": true,
-            "helpMarkDown": "Source folder for Logic App."
+            "helpMarkDown": "Source folder for the Logic App."
         }
     ],
     "execution": {

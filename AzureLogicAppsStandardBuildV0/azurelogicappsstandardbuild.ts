@@ -9,7 +9,7 @@ export class AzureLogicAppsStandardBuild {
     private static defaultWorkingDir: string;
     private static artifactStagingDir: string;
 
-    // Logic App
+    // Logic Apps
     private static sourceFolder: string;
 
     public static async main(): Promise<void> {

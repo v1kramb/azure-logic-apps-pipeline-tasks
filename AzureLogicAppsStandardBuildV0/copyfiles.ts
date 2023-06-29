@@ -1,4 +1,4 @@
-// Adapted from: https://github.com/microsoft/azure-pipelines-tasks/blob/master/Tasks/CopyFilesV2/copyfiles.ts
+// Adapted from => https://github.com/microsoft/azure-pipelines-tasks/blob/master/Tasks/CopyFilesV2/copyfiles.ts
 import fs = require('fs');
 import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');

@@ -1,3 +1,4 @@
+// Used in archivefiles.ts
 import tl = require("azure-pipelines-task-lib/task");
 
 export function reportArchivePlan(files: string[], max: number=10) : string[] {

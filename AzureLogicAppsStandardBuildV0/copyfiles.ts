@@ -3,14 +3,6 @@ import fs = require('fs');
 import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');
 
-/*
-SourceFolder
-Contents: '**'
-TargetFolder
-#CleanTargetFolder: false
-#OverWrite: false
-*/
-
 export class CopyFiles {
     private sourceFolder: string;
 

@@ -90,7 +90,7 @@ export class FileArchiver {
      * Equips zipping utilities with working directory, outstream, and errstream.
      * @returns map containing cwd, outstream, errstream
      */
-    private getOptions(): tr.IExecSyncOptions {
+    private getZippingParams(): tr.IExecSyncOptions {
         var dirName: string;
         var stats: tl.FsStats = tl.stats(this.rootFolderOrFile);
         if (stats.isFile()) {
@@ -114,7 +114,7 @@ export class FileArchiver {
         const fileList: string = this.createFileList(files);
         sevenZip.arg('@' + fileList);
     
-        return this.handleExecResult(sevenZip.execSync(this.getOptions()), archive);
+        return this.handleExecResult(sevenZip.execSync(this.getZippingParams()), archive);
     }
     
     /**
@@ -129,7 +129,7 @@ export class FileArchiver {
             zip.arg(files[i]);
             console.log(tl.loc('Filename', files[i]));
         }
-        return this.handleExecResult(zip.execSync(this.getOptions()), archive);
+        return this.handleExecResult(zip.execSync(this.getZippingParams()), archive);
     }
     
     /**

@@ -93,11 +93,14 @@ export class FileArchiver {
     private getZippingParams(): tr.IExecSyncOptions {
         var dirName: string;
         var stats: tl.FsStats = tl.stats(this.rootFolderOrFile);
+
         if (stats.isFile()) {
             dirName = path.dirname(this.rootFolderOrFile);
-        } else {
+        } 
+        else {
             dirName = this.rootFolderOrFile;
         }
+        
         return { cwd: dirName, outStream: process.stdout as stream.Writable, errStream: process.stderr as stream.Writable };
     }
 

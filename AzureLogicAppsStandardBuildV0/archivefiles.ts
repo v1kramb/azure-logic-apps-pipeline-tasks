@@ -26,13 +26,12 @@ export class FileArchiver {
         this.archiveFile = path.normalize(path.join(this.stagingDir, this.buildId + '.zip').trim()); // $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
     }
 
+    /**
+     * Returns the location of the 7-Zip archiver, which is used if the platform is Windows. 
+     * @returns path to 7zip
+     */
     private getSevenZipLocation(): string {
-        if (process.platform == 'win32') {
-            return path.join(__dirname, '7zip/7z.exe');
-        } 
-        else {
-            return tl.which('7z', true);
-        }
+        return path.join(__dirname, '7zip/7z.exe');
     }
 
     /**
@@ -52,14 +51,12 @@ export class FileArchiver {
      * Converts normalized path to absolute path
      * @returns absolute path
      */
-    private convertToAbsolutePath(normalizedPath: string): string {
-        tl.debug('convertToAbsolutePath:' + normalizedPath);
-    
+    private convertToAbsolutePath(normalizedPath: string): string {    
         var result = normalizedPath;
         if (!path.isAbsolute(normalizedPath)) {
             result = path.join(this.defaultWorkingDir, normalizedPath);
-            tl.debug('Relative file path: ' + normalizedPath + ' resolving to: ' + result);
         }
+
         return result;
     }
 
@@ -101,12 +98,13 @@ export class FileArchiver {
         } else {
             dirName = this.rootFolderOrFile;
         }
-        tl.debug("cwd (exclude root folder)= " + dirName);
         return { cwd: dirName, outStream: process.stdout as stream.Writable, errStream: process.stderr as stream.Writable };
     }
 
+    /**
+     * Archiving method for Windows. Applies default compression.
+     */
     private sevenZipArchive(archive: string, compression: string, files: string[]) {
-        tl.debug('Creating archive with 7-zip: ' + archive);
         var sevenZip = tl.tool(this.getSevenZipLocation());
         sevenZip.arg('a');
         sevenZip.arg('-t' + compression);
@@ -119,9 +117,10 @@ export class FileArchiver {
         return this.handleExecResult(sevenZip.execSync(this.getOptions()), archive);
     }
     
-    // Linux & Mac only
+    /**
+     * Archiving method for Mac/Linux. 
+     */
     private zipArchive(archive: string, files: string[]) {
-        tl.debug('Creating archive with zip: ' + archive);
         var zip = tl.tool(tl.which('zip', true));
         zip.arg('-r');
         zip.arg('-q');
@@ -133,10 +132,11 @@ export class FileArchiver {
         return this.handleExecResult(zip.execSync(this.getOptions()), archive);
     }
     
-
+    /**
+     * Error handling for results of executing code TODO:
+     */
     private handleExecResult(execResult: tr.IExecSyncResult, archive: string) {
         if (execResult.code != tl.TaskResult.Succeeded) {
-            tl.debug('execResult: ' + JSON.stringify(execResult));
             throw new Error(tl.loc('ArchiveCreationFailedWithError', archive, execResult.code, execResult.stdout, execResult.stderr, execResult.error));
         }
     }
@@ -154,6 +154,9 @@ export class FileArchiver {
         }
     }
 
+    /**
+     * Main method for archiving.
+     */
     public async Archive() {
         try {
             tl.setResourcePath(path.join(__dirname, 'task.json'));
@@ -177,14 +180,11 @@ export class FileArchiver {
             var files: string[] = this.findFiles();
             utils.reportArchivePlan(files).forEach(line => console.log(line));
 
-            tl.debug(`Listing all ${files.length} files to archive:`);
             files.forEach(file => tl.debug(file));
 
             // Ensure output folder exists
             var destinationFolder = path.dirname(this.archiveFile);
-            tl.debug("Checking for archive destination folder:" + destinationFolder);
             if (!tl.exist(destinationFolder)) {
-                tl.debug("Destination folder does not exist, creating:" + destinationFolder);
                 tl.mkdirP(destinationFolder);
             }
 
@@ -192,7 +192,6 @@ export class FileArchiver {
 
             tl.setResult(tl.TaskResult.Succeeded, 'Successfully created archive: ' + this.archiveFile);
         } catch (err) {
-            tl.debug(err.message);
             tl.error(err);
             tl.setResult(tl.TaskResult.Failed, err.message);
         }

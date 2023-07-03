@@ -51,6 +51,9 @@ export class FileCopier {
         }
     }
 
+    /**
+     * Main method for copying.
+     */
     public async Copy(): Promise<void> {
         tl.setResourcePath(path.join(__dirname, 'task.json'));
 

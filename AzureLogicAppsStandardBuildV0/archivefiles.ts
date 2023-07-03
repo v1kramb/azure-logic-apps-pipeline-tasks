@@ -19,7 +19,7 @@ export class FileArchiver {
         this.stagingDir = stagingDir;
         this.buildId = buildId;
 
-        this.rootFolderOrFile = this.makeAbsolute(path.normalize(path.join(
+        this.rootFolderOrFile = this.convertToAbsolutePath(path.normalize(path.join(
             this.defaultWorkingDir, 'project_output'
         ).trim())); // $(System.DefaultWorkingDirectory)/project_output
 
@@ -52,8 +52,8 @@ export class FileArchiver {
      * Converts normalized path to absolute path
      * @returns absolute path
      */
-    private makeAbsolute(normalizedPath: string): string {
-        tl.debug('makeAbsolute:' + normalizedPath);
+    private convertToAbsolutePath(normalizedPath: string): string {
+        tl.debug('convertToAbsolutePath:' + normalizedPath);
     
         var result = normalizedPath;
         if (!path.isAbsolute(normalizedPath)) {

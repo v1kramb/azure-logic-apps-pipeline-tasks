@@ -6,7 +6,7 @@ import fs = require('fs');
 import stream = require("stream");
 import utils = require('./utils.js');
 
-export class ArchiveFiles {
+export class FileArchiver {
     private defaultWorkingDir: string;
     private stagingDir: string;
     private buildId: string;
@@ -154,7 +154,7 @@ export class ArchiveFiles {
         }
     }
 
-    public async main() {
+    public async Archive() {
         try {
             tl.setResourcePath(path.join(__dirname, 'task.json'));
             

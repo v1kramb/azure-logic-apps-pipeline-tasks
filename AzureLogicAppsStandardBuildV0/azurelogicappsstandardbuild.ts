@@ -1,6 +1,6 @@
 import * as path from 'path';
-import { CopyFiles } from './copyfiles';
-import { ArchiveFiles } from './archivefiles';
+import { FileCopier } from './copyfiles';
+import { FileArchiver } from './archivefiles';
 import tl = require('azure-pipelines-task-lib/task');
 
 export class AzureLogicAppsStandardBuild {
@@ -24,20 +24,21 @@ export class AzureLogicAppsStandardBuild {
             
             // Get input for source folder
             this.sourceFolder = tl.getPathInputRequired('sourceFolder');
+            // TODO: Optional input for archiveFile path / rethinking default value (Build.BuildId)
 
             // Copy files
-            const fileCopier = new CopyFiles(this.sourceFolder);
+            const fileCopier = new FileCopier(this.sourceFolder);
             try {
-                fileCopier.main();
+                fileCopier.Copy();
             } catch (err) {
                 tl.setResult(tl.TaskResult.Failed, err);
             }
             console.log("Copied files.");
 
             // Archive files
-            const fileArchiver = new ArchiveFiles(this.defaultWorkingDir, this.artifactStagingDir, this.buildId);
+            const fileArchiver = new FileArchiver(this.defaultWorkingDir, this.artifactStagingDir, this.buildId);
             try {
-                fileArchiver.main();
+                fileArchiver.Archive();
             } catch (err) {
                 tl.setResult(tl.TaskResult.Failed, err);
             }

@@ -3,7 +3,7 @@ import fs = require('fs');
 import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');
 
-export class CopyFiles {
+export class FileCopier {
     private sourceFolder: string;
 
     constructor(sourceFolder: string) {
@@ -51,7 +51,7 @@ export class CopyFiles {
         }
     }
 
-    public async main(): Promise<void> {
+    public async Copy(): Promise<void> {
         tl.setResourcePath(path.join(__dirname, 'task.json'));
 
         const findOptions: tl.FindOptions = {

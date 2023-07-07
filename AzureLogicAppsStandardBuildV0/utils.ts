@@ -1,6 +1,10 @@
 // Used in archivefiles.ts
 import tl = require("azure-pipelines-task-lib/task");
 
+/**
+ * Returns "plan" of archiver describing which files have been found - helpful for debugging.
+ * @returns array of readable strings representing what is being archived
+ */
 export function reportArchivePlan(files: string[], max: number=10) : string[] {
     var plan: string[] = [];
     plan.push(tl.loc('FoundNFiles', files.length));

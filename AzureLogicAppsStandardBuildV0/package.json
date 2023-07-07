@@ -1,6 +1,6 @@
 {
   "name": "azure-logic-apps-standard-build",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "",
   "main": "azurelogicappsstandardbuild.js",
   "scripts": {

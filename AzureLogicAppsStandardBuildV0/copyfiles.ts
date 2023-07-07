@@ -11,47 +11,6 @@ export class FileCopier {
     }
 
     /**
-     * Gets stats for the provided path.
-     * Will throw error if entry does not exist and `throwEnoent` is `true`.
-     * @param path path for which method will try to get `fs.Stats`.
-     * @returns `fs.Stats` or `null`
-     */
-    private stats(path: string): fs.Stats {
-        if (fs.existsSync(path)) {
-            return fs.statSync(path);
-        }
-        else {
-            const message: string = `Entry "${path}" does not exist`;
-            tl.warning(message);
-            throw new Error(message);
-        }
-    }
-
-    /**
-     * Filter out directories in paths which match contents.
-     * @param paths path for which method will try to get `fs.Stats`.
-     * @returns filtered out list of paths
-     */
-    private filterOutDirectories(paths: string[]): string[] {
-        return paths.filter((path: string) => {
-            const itemStats: fs.Stats = this.stats(path);
-            return !itemStats.isDirectory();
-        });
-    }
-
-    /**
-     * Creates full path for target folder with error handling.
-     * @param targetFolder Target folder for source to be copied to.
-     */
-    private makeDirP(targetFolder: string) {
-        try {
-            tl.mkdirP(targetFolder);
-        } catch (err) {
-            throw err;
-        }
-    }
-
-    /**
      * Main method for copying.
      */
     public async Copy(): Promise<void> {
@@ -64,7 +23,7 @@ export class FileCopier {
         };
 
         let contents: string[] = ["**"]; // glob pattern matching - meant to match all paths in source directory
-        let targetFolder: string = "project_output"; // Follows from current docs. May be better to use format specific to Logic Apps or temporary UID
+        let targetFolder: string = "_output"; // may be better to use format specific to Logic Apps or temporary UID
 
         this.sourceFolder = path.normalize(this.sourceFolder); // important for determing relative paths of files later on
         let allPaths: string[] = tl.find(this.sourceFolder, findOptions);
@@ -74,7 +33,7 @@ export class FileCopier {
 
         if (matchedFiles.length > 0) {
             // Check that target folder doesn't already exist
-            const targetFolderStats: fs.Stats = this.stats(targetFolder);
+            const targetFolderStats: fs.Stats = this.getPathStats(targetFolder);
             if (targetFolderStats)
                 throw new Error(`Target folder ${targetFolder} already exists.`);
 
@@ -95,7 +54,7 @@ export class FileCopier {
                         createdFolders[targetDir] = true;
                     }
 
-                    let targetStats: fs.Stats = this.stats(targetPath);
+                    let targetStats: fs.Stats = this.getPathStats(targetPath);
                     if (targetStats && targetStats.isDirectory())
                         throw new Error(`Target "${targetPath}" is a directory`);
                     
@@ -108,6 +67,47 @@ export class FileCopier {
             } catch (err) {
                 tl.setResult(tl.TaskResult.Failed, err);
             }
+        }
+    }
+
+    /**
+     * Filter out directories in paths which match contents.
+     * @param paths path for which method will try to get `fs.Stats`.
+     * @returns filtered out list of paths
+     */
+    private filterOutDirectories(paths: string[]): string[] {
+        return paths.filter((path: string) => {
+            const itemStats: fs.Stats = this.getPathStats(path);
+            return !itemStats.isDirectory();
+        });
+    }
+
+    /**
+     * Gets stats for the provided path.
+     * Will throw error if entry does not exist and `throwEnoent` is `true`.
+     * @param path path for which method will try to get `fs.Stats`.
+     * @returns `fs.Stats` or `null`
+     */
+    private getPathStats(path: string): fs.Stats {
+        if (fs.existsSync(path)) {
+            return fs.statSync(path);
+        }
+        else {
+            const message: string = `Entry "${path}" does not exist`;
+            tl.warning(message);
+            throw new Error(message);
+        }
+    }
+
+    /**
+     * Creates full path for target folder with error handling.
+     * @param targetFolder Target folder for source to be copied to.
+     */
+    private makeDirP(targetFolder: string) {
+        try {
+            tl.mkdirP(targetFolder);
+        } catch (err) {
+            throw err;
         }
     }
 }

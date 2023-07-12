@@ -5,13 +5,13 @@ import mockanswer = require('azure-pipelines-task-lib/mock-answer');
 import mockrun = require('azure-pipelines-task-lib/mock-run');
 import path = require('path');
 
-let taskPath = path.join(__dirname, '..', 'copyfiles.js');
+let taskPath = path.join(__dirname, '..', 'azurelogicappsstandardbuild.js');
 let runner: mockrun.TaskMockRunner = new mockrun.TaskMockRunner(taskPath);
-runner.setInput('Contents', '**');
+
+process.env['AGENT_TEMPDIRECTORY'] = path.join(__dirname, 'test_temp');
+
 runner.setInput('SourceFolder', path.normalize('/srcDir'));
-runner.setInput('TargetFolder', path.normalize('/destDir'));
-runner.setInput('CleanTargetFolder', 'false');
-runner.setInput('Overwrite', 'false');
+
 let answers = <mockanswer.TaskLibAnswers> {
     checkPath: { },
     find: { },

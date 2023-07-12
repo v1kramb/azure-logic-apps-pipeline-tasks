@@ -20,6 +20,13 @@
             "label": "Source Folder",
             "required": true,
             "helpMarkDown": "Source folder for the Logic App."
+        },
+        {
+            "name": "archiveFile",
+            "type": "filePath",
+            "label": "Folder for archive file",
+            "required": false,
+            "helpMarkDown": "Folder for destination of archive file."
         }
     ],
     "execution": {

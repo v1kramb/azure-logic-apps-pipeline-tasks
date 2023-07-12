@@ -14,7 +14,7 @@ export class FileArchiver {
     private rootFolderOrFile: string;
     private archiveFile: string;
 
-    constructor(defaultWorkingDir: string, stagingDir: string, buildId: string) {
+    constructor(defaultWorkingDir: string, archiveFile: string | undefined, stagingDir: string, buildId: string) {
         this.defaultWorkingDir = defaultWorkingDir;
         this.stagingDir = stagingDir;
         this.buildId = buildId;
@@ -23,7 +23,10 @@ export class FileArchiver {
             this.defaultWorkingDir, '_output'
         ).trim())); // $(System.DefaultWorkingDirectory)/_output
 
-        this.archiveFile = path.normalize(path.join(this.stagingDir, this.buildId + '.zip').trim()); // $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        if (archiveFile === undefined)
+            this.archiveFile = path.normalize(path.join(this.stagingDir, this.buildId + '.zip').trim()); // $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+        else
+            this.archiveFile = archiveFile;
     }
 
     /**

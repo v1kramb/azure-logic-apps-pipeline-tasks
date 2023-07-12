@@ -20,6 +20,13 @@
             "label": "ms-resource:loc.input.label.sourceFolder",
             "required": true,
             "helpMarkDown": "ms-resource:loc.input.help.sourceFolder"
+        },
+        {
+            "name": "archiveFile",
+            "type": "filePath",
+            "label": "ms-resource:loc.input.label.archiveFile",
+            "required": true,
+            "helpMarkDown": "ms-resource:loc.input.help.archiveFile"
         }
     ],
     "execution": {

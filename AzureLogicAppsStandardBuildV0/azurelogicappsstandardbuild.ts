@@ -11,6 +11,7 @@ export class AzureLogicAppsStandardBuild {
 
     // Logic Apps
     private static sourceFolder: string;
+    private static archiveFile: string | undefined;
 
     public static async main(): Promise<void> {
         try {
@@ -24,7 +25,7 @@ export class AzureLogicAppsStandardBuild {
             
             // Get input for source folder
             this.sourceFolder = tl.getPathInputRequired('sourceFolder');
-            // TODO: Optional input for archiveFile path / rethinking default value (Build.BuildId)
+            this.archiveFile = tl.getPathInput('archiveFile');
 
             // Copy files
             const fileCopier = new FileCopier(this.sourceFolder);
@@ -36,7 +37,7 @@ export class AzureLogicAppsStandardBuild {
             console.log("Copied files.");
 
             // Archive files
-            const fileArchiver = new FileArchiver(this.defaultWorkingDir, this.artifactStagingDir, this.buildId);
+            const fileArchiver = new FileArchiver(this.defaultWorkingDir, this.archiveFile, this.artifactStagingDir, this.buildId);
             try {
                 fileArchiver.Archive();
             } catch (err) {

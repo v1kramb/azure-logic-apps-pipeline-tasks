@@ -40,16 +40,16 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     }
 
     before(() => {
-        const testTemp = path.join(__dirname, 'test_temp');
+        const testTemp = path.join(__dirname, 'srcDir');
         if (!fs.existsSync(testTemp)) {
             fs.mkdirSync(testTemp);
         }
-        const testOutput = path.join(__dirname, 'test_output');
+        const testOutput = path.join(__dirname, 'destDir');
         if (!fs.existsSync(testOutput)) {
             fs.mkdirSync(testOutput);
         }
 
-        const replaceTestOutput = path.join(__dirname, 'test_output', 'replace_test');
+        const replaceTestOutput = path.join(__dirname, 'destDir', 'replace_test');
         if (!fs.existsSync(replaceTestOutput)) {
             fs.mkdirSync(replaceTestOutput);
         }
@@ -105,11 +105,11 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     });
 
     this.afterAll(() => {
-        const testTemp = path.join(__dirname, 'test_temp');
+        const testTemp = path.join(__dirname, 'srcDir');
         if (fs.existsSync(testTemp)) {
             deleteFolderRecursive(testTemp);
         }
-        const testOutput = path.join(__dirname, 'test_output');
+        const testOutput = path.join(__dirname, 'destDir');
         if (fs.existsSync(testOutput)) {
             deleteFolderRecursive(testTemp);
         }

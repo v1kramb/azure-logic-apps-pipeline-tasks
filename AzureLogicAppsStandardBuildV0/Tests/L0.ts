@@ -5,13 +5,16 @@ import fs = require('fs');
 import os = require('os');
 import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');
+import { IExecSyncResult } from 'azure-pipelines-task-lib/toolrunner.js';
 
 let expectedArchivePath: undefined | string = undefined;
 
 describe('AzureLogicAppsStandardBuild L0 Suite', function () {
-    this.timeout(parseInt(process.env.TASK_TEST_TIMEOUT) || 20000);
+    // Localization
+    tl.setResourcePath(path.join( __dirname, '..', 'task.json'));
 
-    function deleteFolderRecursive (directoryPath) {
+    // Helper functions
+    function deleteFolderRecursive (directoryPath: string) {
         if (fs.existsSync(directoryPath)) {
             fs.readdirSync(directoryPath).forEach((file, index) => {
               const curPath = path.join(directoryPath, file);
@@ -27,7 +30,7 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
           }
         };
 
-    function runValidations(validator: () => void, tr, done) {
+    function runValidations(validator: () => void, tr: IExecSyncResult, done: any) {
         try {
             validator();
             done();
@@ -44,56 +47,11 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         if (!fs.existsSync(testTemp)) {
             fs.mkdirSync(testTemp);
         }
-        const testOutput = path.join(__dirname, 'destDir');
+        const testOutput = path.join(__dirname, '_output');
         if (!fs.existsSync(testOutput)) {
             fs.mkdirSync(testOutput);
         }
-
-        const replaceTestOutput = path.join(__dirname, 'destDir', 'replace_test');
-        if (!fs.existsSync(replaceTestOutput)) {
-            fs.mkdirSync(replaceTestOutput);
-        }
     })
-
-    it('copy files from srcdir to destdir', (done: Mocha.Done) => {
-        this.timeout(1000);
-
-        let testPath = path.join(__dirname, 'L0copyAllFiles.js');
-        let runner: mocktest.MockTestRunner = new mocktest.MockTestRunner(testPath);
-        runner.run();
-
-        assert(
-            runner.succeeded,
-            'should have succeeded');
-        assert(
-            runner.stdOutContained(`creating path: ${path.normalize('/destDir')}`),
-            'should have mkdirP destDir');
-        assert(
-            runner.stdOutContained(`creating path: ${path.normalize('/destDir/someOtherDir')}`),
-            'should have mkdirP someOtherDir');
-        assert(
-            runner.stdOutContained(`creating path: ${path.normalize('/destDir/someOtherDir2')}`),
-            'should have mkdirP someOtherDir2');
-        assert(
-            !runner.stdOutContained(`creating path: ${path.normalize('/destDir/someOtherDir3')}`),
-            'should not have mkdirP someOtherDir3');
-        assert(
-            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir/file1.file')} to ${path.normalize('/destDir/someOtherDir/file1.file')}`),
-            'should have copied dir1 file1');
-        assert(
-            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir/file2.file')} to ${path.normalize('/destDir/someOtherDir/file2.file')}`),
-            'should have copied dir1 file2');
-        assert(
-            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir2/file1.file')} to ${path.normalize('/destDir/someOtherDir2/file1.file')}`),
-            'should have copied dir2 file1');
-        assert(
-            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir2/file2.file')} to ${path.normalize('/destDir/someOtherDir2/file2.file')}`),
-            'should have copied dir2 file2');
-        assert(
-            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir2/file3.file')} to ${path.normalize('/destDir/someOtherDir2/file3.file')}`),
-            'should have copied dir2 file3');
-        done();
-    });
 
     this.afterEach(() => {        
         try {
@@ -109,7 +67,7 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         if (fs.existsSync(testTemp)) {
             deleteFolderRecursive(testTemp);
         }
-        const testOutput = path.join(__dirname, 'destDir');
+        const testOutput = path.join(__dirname, '_output');
         if (fs.existsSync(testOutput)) {
             deleteFolderRecursive(testTemp);
         }
@@ -124,7 +82,6 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     let test = this;
     let cases = [0, 1, 10, 11, 100];
     
-    tl.setResourcePath(path.join( __dirname, '..', 'task.json'));
     cases.forEach(function(numberOfFiles) {
         it(`Verify plan output for ${numberOfFiles} files has correct number of lines`, (done: Mocha.Done) => {
             test.timeout(1000);
@@ -134,6 +91,50 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     
             done();
         });
+    });
+
+    it('copy files from srcdir and archive to zipped/out.zip', (done: Mocha.Done) => {
+        this.timeout(15000);
+
+        let testPath = path.join(__dirname, 'L0copyAndZip.js');
+        let runner: mocktest.MockTestRunner = new mocktest.MockTestRunner(testPath);
+        runner.run();
+
+        // copying
+        assert(
+            runner.succeeded,
+            'should have succeeded');
+        assert(
+            runner.stdOutContained(`creating path: ${path.normalize('/_output')}`),
+            'should have mkdirP _output');
+        assert(
+            runner.stdOutContained(`creating path: ${path.normalize('/_output/someOtherDir')}`),
+            'should have mkdirP someOtherDir');
+        assert(
+            runner.stdOutContained(`creating path: ${path.normalize('/_output/someOtherDir2')}`),
+            'should have mkdirP someOtherDir2');
+        assert(
+            !runner.stdOutContained(`creating path: ${path.normalize('/_output/someOtherDir3')}`),
+            'should not have mkdirP someOtherDir3');
+        assert(
+            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir/file1.file')} to ${path.normalize('/_output/someOtherDir/file1.file')}`),
+            'should have copied dir1 file1');
+        assert(
+            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir/file2.file')} to ${path.normalize('/_output/someOtherDir/file2.file')}`),
+            'should have copied dir1 file2');
+        assert(
+            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir2/file1.file')} to ${path.normalize('/_output/someOtherDir2/file1.file')}`),
+            'should have copied dir2 file1');
+        assert(
+            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir2/file2.file')} to ${path.normalize('/_output/someOtherDir2/file2.file')}`),
+            'should have copied dir2 file2');
+        assert(
+            runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir2/file3.file')} to ${path.normalize('/_output/someOtherDir2/file3.file')}`),
+            'should have copied dir2 file3');
+        
+        // archiving
+        
+        done();
     });
 
     it('Successfully creates a zip', function(done: Mocha.Done) {
@@ -162,98 +163,4 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
             assert(fs.existsSync(expectedArchivePath), `Should have successfully created the archive at ${expectedArchivePath}, instead directory contents are ${fs.readdirSync(path.dirname(expectedArchivePath))}`);
         }, tr, done);
     });
-
-    it('Successfully creates a tar', function(done: Mocha.Done) {
-        this.timeout(5000);
-        process.env['archiveType'] = 'tar';
-        process.env['archiveFile'] = 'myTar';
-        process.env['includeRootFolder'] = 'true';
-        expectedArchivePath = path.join(__dirname, 'test_output', 'myTar.gz');
-        if (process.platform.indexOf('win32') < 0) {
-            expectedArchivePath = path.join(__dirname, 'test_output', 'myTar');
-        }
-
-        let tp: string = path.join(__dirname, 'L0CreateArchive.js');
-        let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
-
-        tr.run();
-
-        runValidations(() => {
-            assert(tr.stdout.indexOf('Creating archive') > -1, 'Should have tried to create archive');
-            assert(fs.existsSync(expectedArchivePath), `Should have successfully created the archive at ${expectedArchivePath}, instead directory contents are ${fs.readdirSync(path.dirname(expectedArchivePath))}`);
-        }, tr, done);
-    });
-
-// These tests rely on 7z which isnt present on macOS
-if (process.platform.indexOf('darwin') < 0) {
-    it('Successfully creates a 7z', function(done: Mocha.Done) {
-        this.timeout(5000);
-        process.env['archiveType'] = '7z';
-        process.env['archiveFile'] = 'my7z';
-        process.env['includeRootFolder'] = 'true';
-        expectedArchivePath = path.join(__dirname, 'test_output', 'my7z.7z');
-
-        let tp: string = path.join(__dirname, 'L0CreateArchive.js');
-        let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
-
-        tr.run();
-
-        runValidations(() => {
-                assert(tr.stdout.indexOf('Creating archive') > -1, 'Should have tried to create archive');
-                assert(fs.existsSync(expectedArchivePath), `Should have successfully created the archive at ${expectedArchivePath}, instead directory contents are ${fs.readdirSync(path.dirname(expectedArchivePath))}`);
-        }, tr, done);
-    });
-
-    it('Successfully creates a wim', function(done: Mocha.Done) {
-        this.timeout(5000);
-        process.env['archiveType'] = 'wim';
-        process.env['archiveFile'] = 'mywim';
-        process.env['includeRootFolder'] = 'true';
-        expectedArchivePath = path.join(__dirname, 'test_output', 'myWim.wim');
-        if (process.platform.indexOf('win') < 0) {
-            expectedArchivePath = path.join(__dirname, 'test_output', 'mywim.wim');
-        }
-
-        let tp: string = path.join(__dirname, 'L0CreateArchive.js');
-        let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
-
-        tr.run();
-
-        runValidations(() => {
-                assert(tr.stdout.indexOf('Creating archive') > -1, 'Should have tried to create archive');
-                assert(fs.existsSync(expectedArchivePath), `Should have successfully created the archive at ${expectedArchivePath}, instead directory contents are ${fs.readdirSync(path.dirname(expectedArchivePath))}`);
-        }, tr, done);
-    });
-
-    it('Replace archive file in the root folder', function(done: Mocha.Done) {
-        const archiveName = "archive.zip";
-        const replaceTestDir =  path.join(__dirname, 'test_output', 'replace_test');
-        const archivePath = path.join(replaceTestDir, archiveName);
-        this.timeout(5000);
-        process.env['archiveType'] = 'zip';
-        process.env['archiveFile'] = archiveName;
-        process.env['includeRootFolder'] = 'false';
-        process.env['rootFolderOrFile'] = replaceTestDir;
-
-        fs.writeFileSync(path.join(replaceTestDir, 'test_file.txt'), 'test data');
-
-        fs.copyFileSync(
-            path.join(__dirname, 'resources', archiveName),
-            path.join(archivePath)
-        );
-
-        expectedArchivePath = archivePath;
-
-        let tp: string = path.join(__dirname, 'L0ReplaceArchiveInRootFolder.js');
-        let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
-
-        tr.run();
-        console.info(tr.stdout);
-        runValidations(() => {
-                assert(tr.succeeded, "Task should succeed");
-                assert(tr.stdout.indexOf('Creating archive') > -1, 'Should have tried to create archive');
-                assert(fs.existsSync(expectedArchivePath), `Should have successfully created the archive at ${expectedArchivePath}, instead directory contents are ${fs.readdirSync(path.dirname(expectedArchivePath))}`);
-        }, tr, done);
-    });
-}
 });

@@ -1,4 +1,4 @@
-// Adapted from: https://github.com/microsoft/azure-pipelines-tasks/blob/master/Tasks/CopyFilesV2/Tests/L0copyAllFiles.ts
+// Taken from: https://github.com/microsoft/azure-pipelines-tasks/blob/master/Tasks/CopyFilesV2/Tests/L0copyAllFiles.ts
 
 import fs = require('fs');
 import mockanswer = require('azure-pipelines-task-lib/mock-answer');
@@ -7,10 +7,9 @@ import path = require('path');
 
 let taskPath = path.join(__dirname, '..', 'azurelogicappsstandardbuild.js');
 let runner: mockrun.TaskMockRunner = new mockrun.TaskMockRunner(taskPath);
-
 process.env['AGENT_TEMPDIRECTORY'] = path.join(__dirname, 'test_temp');
-
-runner.setInput('SourceFolder', path.normalize('/srcDir'));
+runner.setInput('sourceFolder', path.normalize('/srcDir'));
+runner.setInput('archiveFile', path.join(__dirname, '/zipped/out.zip'));
 
 let answers = <mockanswer.TaskLibAnswers> {
     checkPath: { },

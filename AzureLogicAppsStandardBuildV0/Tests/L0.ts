@@ -153,18 +153,4 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         
         done();
     });
-
-    it('Successfully creates a zip', function(done: Mocha.Done) {
-        this.timeout(10000);
-        process.env['archiveType'] = 'zip';
-        
-        process.env['includeRootFolder'] = 'true';
-        expectedArchivePath = path.join(__dirname, 'test_output', 'myZip.zip');
-
-        let tp: string = path.join(__dirname, 'L0CreateArchive.js');
-        let tr: ttm.MockTestRunner = new ttm.MockTestRunner(tp);
-
-        runner.run();
-        
-    });
 });

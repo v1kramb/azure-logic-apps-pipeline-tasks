@@ -1,19 +1,17 @@
+"use strict";
 // Taken from: https://github.com/microsoft/azure-pipelines-tasks/blob/master/Tasks/CopyFilesV2/Tests/L0copyAllFiles.ts
-
-import fs = require('fs');
-import mockanswer = require('azure-pipelines-task-lib/mock-answer');
-import mockrun = require('azure-pipelines-task-lib/mock-run');
-import path = require('path');
-
-let taskPath = path.join(__dirname, '..', 'azurelogicappsstandardbuild.js');
-let runner: mockrun.TaskMockRunner = new mockrun.TaskMockRunner(taskPath);
+exports.__esModule = true;
+var fs = require("fs");
+var mockrun = require("azure-pipelines-task-lib/mock-run");
+var path = require("path");
+var taskPath = path.join(__dirname, '..', 'azurelogicappsstandardbuild.js');
+var runner = new mockrun.TaskMockRunner(taskPath);
 process.env['AGENT_TEMPDIRECTORY'] = path.join(__dirname, 'test_temp');
 runner.setInput('sourceFolder', path.normalize('/srcDir'));
 runner.setInput('archiveFile', path.join(__dirname, 'zipped', 'out.zip'));
-
-let answers = <mockanswer.TaskLibAnswers> {
-    checkPath: { },
-    find: { },
+var answers = {
+    checkPath: {},
+    find: {}
 };
 answers.checkPath[path.normalize('/srcDir')] = true;
 answers.find[path.normalize('/srcDir')] = [
@@ -28,10 +26,9 @@ answers.find[path.normalize('/srcDir')] = [
     path.normalize('/srcDir/someOtherDir3'),
 ];
 runner.setAnswers(answers);
-
-const fsClone = Object.assign({}, fs);
+var fsClone = Object.assign({}, fs);
 Object.assign(fsClone, {
-    existsSync(itemPath: string): boolean {
+    existsSync: function (itemPath) {
         switch (itemPath) {
             case path.normalize('/srcDir'):
             case path.normalize('/srcDir/someOtherDir'):
@@ -47,20 +44,20 @@ Object.assign(fsClone, {
                 return false;
         }
     },
-    statSync(itemPath: string): fs.Stats {
-        const itemStats: fs.Stats = new fs.Stats();
+    statSync: function (itemPath) {
+        var itemStats = new fs.Stats();
         switch (itemPath) {
             case path.normalize('/srcDir/someOtherDir'):
             case path.normalize('/srcDir/someOtherDir2'):
             case path.normalize('/srcDir/someOtherDir3'):
-                itemStats.isDirectory = () => true;
+                itemStats.isDirectory = function () { return true; };
                 break;
             case path.normalize('/srcDir/someOtherDir/file1.file'):
             case path.normalize('/srcDir/someOtherDir/file2.file'):
             case path.normalize('/srcDir/someOtherDir2/file1.file'):
             case path.normalize('/srcDir/someOtherDir2/file2.file'):
             case path.normalize('/srcDir/someOtherDir2/file3.file'):
-                itemStats.isDirectory = () => false;
+                itemStats.isDirectory = function () { return false; };
                 break;
             default:
                 throw { code: 'ENOENT' };
@@ -68,9 +65,7 @@ Object.assign(fsClone, {
         return itemStats;
     },
     // as a precaution, disable fs.chmodSync. it should not be called during this scenario.
-    chmodSync(p: fs.PathLike, mode: fs.Mode): void {}
+    chmodSync: function (p, mode) { }
 });
-
 runner.registerMock('fs', fsClone);
-
 runner.run();

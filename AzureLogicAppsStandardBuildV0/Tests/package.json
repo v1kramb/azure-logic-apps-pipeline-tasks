@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "description": "Azure Logic Apps Standard Build Task Tests",
     "main": "L0.js",
+    "scripts": {
+      "test": "mocha"
+    },
     "repository": {
       "type": "git",
       "url": "git+https://github.com/Microsoft/azure-pipelines-tasks.git"

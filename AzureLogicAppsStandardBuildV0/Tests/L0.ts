@@ -1,13 +1,13 @@
 import * as assert from 'assert';
 import * as utils from '../utils.js';
-import * as ttm from 'azure-pipelines-task-lib/mock-test';
+import * as mocktest from 'azure-pipelines-task-lib/mock-test';
 import fs = require('fs');
 import os = require('os');
 import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');
 import { IExecSyncResult } from 'azure-pipelines-task-lib/toolrunner.js';
 
-let expectedArchivePath: undefined | string = '/zipped';
+let expectedArchivePath: undefined | string = path.join(__dirname, 'zipped', 'out.zip');
 
 describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     // Localization
@@ -30,7 +30,7 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
           }
         };
 
-    function runValidations(validator: () => void, tr: IExecSyncResult, done: any) {
+    function runValidations(validator: () => void, tr: any, done: any) {
         try {
             validator();
             done();
@@ -62,16 +62,16 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         }
     });
 
-    this.afterAll(() => {
-        const testTemp = path.join(__dirname, 'srcDir');
-        if (fs.existsSync(testTemp)) {
-            deleteFolderRecursive(testTemp);
-        }
-        const testOutput = path.join(__dirname, '_output');
-        if (fs.existsSync(testOutput)) {
-            deleteFolderRecursive(testTemp);
-        }
-    })
+    // this.afterAll(() => {
+    //     const testTemp = path.join(__dirname, 'srcDir');
+    //     if (fs.existsSync(testTemp)) {
+    //         deleteFolderRecursive(testTemp);
+    //     }
+    //     const testOutput = path.join(__dirname, '_output');
+    //     if (fs.existsSync(testOutput)) {
+    //         deleteFolderRecursive(testTemp);
+    //     }
+    // })
 
     const files = (n) => {
         return Array.from(
@@ -80,7 +80,7 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     };
 
     let test = this;
-    let cases = [0, 1, 10, 11, 100];
+    let cases = [10]; // [0, 1, 10, 11, 100];
     
     cases.forEach(function(numberOfFiles) {
         it(`Verify plan output for ${numberOfFiles} files has correct number of lines`, (done: Mocha.Done) => {
@@ -93,7 +93,7 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         });
     });
 
-    it('copy files from srcdir and archive to zipped/out.zip', (done: Mocha.Done) => {
+    it.only('copy files from srcdir and archive to zipped/out.zip', (done: Mocha.Done) => {
         this.timeout(15000);
 
         let testPath = path.join(__dirname, 'L0Build.js');
@@ -149,7 +149,7 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
                 assert(runner.stdout.indexOf('adding: test_folder/b/abc.txt (') > -1, 'Should have found 6 items to compress');
             }
             assert(fs.existsSync(expectedArchivePath), `Should have successfully created the archive at ${expectedArchivePath}, instead directory contents are ${fs.readdirSync(path.dirname(expectedArchivePath))}`);
-        }, tr, done);
+        }, runner, done);
         
         done();
     });

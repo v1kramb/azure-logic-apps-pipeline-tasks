@@ -96,7 +96,7 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     it('copy files from srcdir and archive to zipped/out.zip', (done: Mocha.Done) => {
         this.timeout(15000);
 
-        let testPath = path.join(__dirname, 'L0copyAndZip.js');
+        let testPath = path.join(__dirname, 'L0Build.js');
         expectedArchivePath = path.join(__dirname, 'zipped', 'out.zip');
         process.env['archiveFile'] = expectedArchivePath;
         

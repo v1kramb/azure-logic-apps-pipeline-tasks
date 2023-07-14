@@ -7,9 +7,12 @@ import path = require('path');
 
 let taskPath = path.join(__dirname, '..', 'azurelogicappsstandardbuild.js');
 let runner: mockrun.TaskMockRunner = new mockrun.TaskMockRunner(taskPath);
-process.env['AGENT_TEMPDIRECTORY'] = path.join(__dirname, 'test_temp');
-runner.setInput('sourceFolder', path.normalize('/srcDir'));
-runner.setInput('archiveFile', path.join(__dirname, 'zipped', 'out.zip'));
+// process.env['AGENT_TEMPDIRECTORY'] = path.join(__dirname, 'test_temp');
+process.env['BUILD_BUILDID'] = '100';
+process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'] = __dirname;
+process.env['BUILD_ARTIFACTSTAGINGDIRECTORY'] = __dirname;
+runner.setInput('sourceFolder', path.normalize(path.join(__dirname, 'srcDir')));
+runner.setInput('archiveFile', path.normalize(path.join(__dirname, 'zipped', 'out.zip')));
 
 let answers = <mockanswer.TaskLibAnswers> {
     checkPath: { },

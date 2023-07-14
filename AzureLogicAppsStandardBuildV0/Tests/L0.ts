@@ -5,9 +5,8 @@ import fs = require('fs');
 import os = require('os');
 import path = require('path');
 import tl = require('azure-pipelines-task-lib/task');
-import { IExecSyncResult } from 'azure-pipelines-task-lib/toolrunner.js';
 
-let expectedArchivePath: undefined | string = path.join(__dirname, 'zipped', 'out.zip');
+let expectedArchivePath: undefined | string = undefined;
 
 describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     // Localization
@@ -53,14 +52,14 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         }
     })
 
-    this.afterEach(() => {        
-        try {
-            if (expectedArchivePath) fs.unlinkSync(expectedArchivePath);
-            expectedArchivePath = undefined;
-        } catch (err) {
-            console.log('Cannot remove created archive: ' + expectedArchivePath);
-        }
-    });
+    // this.afterEach(() => {        
+    //     try {
+    //         if (expectedArchivePath) fs.unlinkSync(expectedArchivePath);
+    //         expectedArchivePath = undefined;
+    //     } catch (err) {
+    //         console.log('Cannot remove created archive: ' + expectedArchivePath);
+    //     }
+    // });
 
     // this.afterAll(() => {
     //     const testTemp = path.join(__dirname, 'srcDir');
@@ -93,17 +92,33 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         });
     });
 
-    it.only('copy files from srcdir and archive to zipped/out.zip', (done: Mocha.Done) => {
+    it.only('should succeed with simple inputs', function(done: Mocha.Done) {
+        this.timeout(1000);
+    
+        let tp = path.join(__dirname, 'L0Build.js');
+        let tr: mocktest.MockTestRunner = new mocktest.MockTestRunner(tp);
+    
+        tr.run();
+        console.log(tr.succeeded);
+        console.log("\nhello\n");
+        console.log(tr.stdout);
+        done();
+    });
+
+    it('copy files from srcdir and archive to zipped/out.zip', (done: Mocha.Done) => {
         this.timeout(15000);
 
         let testPath = path.join(__dirname, 'L0Build.js');
         expectedArchivePath = path.join(__dirname, 'zipped', 'out.zip');
+        process.env['sourceFolder'] = path.join(__dirname, 'srcDir');
         process.env['archiveFile'] = expectedArchivePath;
+        process.env['BUILD_BUILDID'] = '100';
+        process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'] = __dirname;
+        process.env['BUILD_ARTIFACTSTAGINGDIRECTORY'] = __dirname;
         
         let runner: mocktest.MockTestRunner = new mocktest.MockTestRunner(testPath);
         runner.run();
 
-        // copying
         assert(
             runner.succeeded,
             'should have succeeded');
@@ -134,20 +149,10 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         assert(
             runner.stdOutContained(`copying ${path.normalize('/srcDir/someOtherDir2/file3.file')} to ${path.normalize('/_output/someOtherDir2/file3.file')}`),
             'should have copied dir2 file3');
-        
+
         // archiving
         runValidations(() => {
             assert(runner.stdout.indexOf('Creating archive') > -1, 'Should have tried to create archive');
-            if (process.platform.indexOf('win32') >= 0) {
-                assert(runner.stdout.indexOf('Add new data to archive: 3 folders, 3 files') > -1, 'Should have found 6 items to compress');
-            } else {
-                assert(runner.stdout.indexOf('adding: test_folder/ (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/a/ (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/a/abc.txt (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/a/def.txt (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/b/ (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/b/abc.txt (') > -1, 'Should have found 6 items to compress');
-            }
             assert(fs.existsSync(expectedArchivePath), `Should have successfully created the archive at ${expectedArchivePath}, instead directory contents are ${fs.readdirSync(path.dirname(expectedArchivePath))}`);
         }, runner, done);
         

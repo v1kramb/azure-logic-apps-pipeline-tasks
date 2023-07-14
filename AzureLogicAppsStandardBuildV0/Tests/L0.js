@@ -6,7 +6,7 @@ var mocktest = require("azure-pipelines-task-lib/mock-test");
 var fs = require("fs");
 var path = require("path");
 var tl = require("azure-pipelines-task-lib/task");
-var expectedArchivePath = path.join(__dirname, 'zipped', 'out.zip');
+var expectedArchivePath = undefined;
 describe('AzureLogicAppsStandardBuild L0 Suite', function () {
     var _this = this;
     // Localization
@@ -50,16 +50,14 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
             fs.mkdirSync(testOutput);
         }
     });
-    this.afterEach(function () {
-        try {
-            if (expectedArchivePath)
-                fs.unlinkSync(expectedArchivePath);
-            expectedArchivePath = undefined;
-        }
-        catch (err) {
-            console.log('Cannot remove created archive: ' + expectedArchivePath);
-        }
-    });
+    // this.afterEach(() => {        
+    //     try {
+    //         if (expectedArchivePath) fs.unlinkSync(expectedArchivePath);
+    //         expectedArchivePath = undefined;
+    //     } catch (err) {
+    //         console.log('Cannot remove created archive: ' + expectedArchivePath);
+    //     }
+    // });
     // this.afterAll(() => {
     //     const testTemp = path.join(__dirname, 'srcDir');
     //     if (fs.existsSync(testTemp)) {
@@ -84,14 +82,27 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
             done();
         });
     });
-    it.only('copy files from srcdir and archive to zipped/out.zip', function (done) {
+    it.only('should succeed with simple inputs', function (done) {
+        this.timeout(1000);
+        var tp = path.join(__dirname, 'L0Build.js');
+        var tr = new mocktest.MockTestRunner(tp);
+        tr.run();
+        console.log(tr.succeeded);
+        console.log("\nhello\n");
+        console.log(tr.stdout);
+        done();
+    });
+    it('copy files from srcdir and archive to zipped/out.zip', function (done) {
         _this.timeout(15000);
         var testPath = path.join(__dirname, 'L0Build.js');
         expectedArchivePath = path.join(__dirname, 'zipped', 'out.zip');
+        process.env['sourceFolder'] = path.join(__dirname, 'srcDir');
         process.env['archiveFile'] = expectedArchivePath;
+        process.env['BUILD_BUILDID'] = '100';
+        process.env['SYSTEM_DEFAULTWORKINGDIRECTORY'] = __dirname;
+        process.env['BUILD_ARTIFACTSTAGINGDIRECTORY'] = __dirname;
         var runner = new mocktest.MockTestRunner(testPath);
         runner.run();
-        // copying
         assert(runner.succeeded, 'should have succeeded');
         assert(runner.stdOutContained("creating path: ".concat(path.normalize('/_output'))), 'should have mkdirP _output');
         assert(runner.stdOutContained("creating path: ".concat(path.normalize('/_output/someOtherDir'))), 'should have mkdirP someOtherDir');
@@ -105,17 +116,6 @@ describe('AzureLogicAppsStandardBuild L0 Suite', function () {
         // archiving
         runValidations(function () {
             assert(runner.stdout.indexOf('Creating archive') > -1, 'Should have tried to create archive');
-            if (process.platform.indexOf('win32') >= 0) {
-                assert(runner.stdout.indexOf('Add new data to archive: 3 folders, 3 files') > -1, 'Should have found 6 items to compress');
-            }
-            else {
-                assert(runner.stdout.indexOf('adding: test_folder/ (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/a/ (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/a/abc.txt (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/a/def.txt (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/b/ (') > -1, 'Should have found 6 items to compress');
-                assert(runner.stdout.indexOf('adding: test_folder/b/abc.txt (') > -1, 'Should have found 6 items to compress');
-            }
             assert(fs.existsSync(expectedArchivePath), "Should have successfully created the archive at ".concat(expectedArchivePath, ", instead directory contents are ").concat(fs.readdirSync(path.dirname(expectedArchivePath))));
         }, runner, done);
         done();

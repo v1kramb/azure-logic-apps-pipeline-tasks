@@ -64,6 +64,8 @@ export class FileArchiver {
                 }
             }
 
+            console.log("Root folder to archive: ", this.rootFolderOrFile);
+
             // Find matching archive files
             var files: string[] = this.findFiles();
             utils.reportArchivePlan(files).forEach(line => console.log(line));
@@ -115,11 +117,14 @@ export class FileArchiver {
      * Archiving method for Windows. Applies default compression.
      */
     private sevenZipArchive(archive: string, compression: string, files: string[]) {
+        tl.debug('Creating archive with 7-zip: ' + archive);
         var sevenZip = tl.tool(this.getSevenZipLocation());
         sevenZip.arg('a');
         sevenZip.arg('-t' + compression);
         sevenZip.arg('-mx=5'); // normal compression (default)
         sevenZip.arg(archive);
+
+        console.log("hello? HELLO??");
     
         const fileList: string = this.createFileList(files);
         sevenZip.arg('@' + fileList);
@@ -131,6 +136,7 @@ export class FileArchiver {
      * Archiving method for Mac/Linux. 
      */
     private zipArchive(archive: string, files: string[]) {
+        tl.debug('Creating archive with zip: ' + archive);
         var zip = tl.tool(tl.which('zip', true));
         zip.arg('-r');
         zip.arg('-q');

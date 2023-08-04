@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
-    "id": "2be6db92-a9be-49e9-862b-29954fded4e5",
+    "id": "4846b208-64b4-48ad-9949-6608794f009a",
     "name": "AzureLogicAppsStandardBuild",
     "friendlyName": "Build Standard Logic App",
     "description": "Build standard Logic Apps for use in CI pipeline",
@@ -9,7 +9,7 @@
     "category": "Utility",
     "version": {
         "Major": 0,
-        "Minor": 3,
+        "Minor": 7,
         "Patch": 0
     },
     "instanceNameFormat": "Azure Logic Apps Build",
@@ -43,6 +43,8 @@
         "ArchiveFileExistsButNotAFile": "Specified archive file: %s already exists and is not a file.",
         "FailedArchiveFile": "Specified archive file: %s cannot be created because it cannot be accessed: %s",
         "FoundNFiles": "Found %d files",
+        "FileAlreadyExistAt": "File %s already exist at %s",
+        "CopyingTo": "Copying %s to %s",
         "ArchivingFile": "Archiving file: %s",
         "MoreFiles": "... %d more ..."
     }

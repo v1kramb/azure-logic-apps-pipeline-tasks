@@ -23,7 +23,7 @@ export class FileCopier {
         };
 
         let contents: string[] = ["**"]; // glob pattern matching - meant to match all paths in source directory
-        let targetFolder: string = "_output"; // may be better to use format specific to Logic Apps or temporary UID
+        let targetFolder: string = path.join(this.sourceFolder, "..", "_output"); // may be better to use format specific to Logic Apps or temporary UID
 
         this.sourceFolder = path.normalize(this.sourceFolder); // important for determing relative paths of files later on
         let allPaths: string[] = tl.find(this.sourceFolder, findOptions);
@@ -37,6 +37,7 @@ export class FileCopier {
             if (targetFolderStats)
                 throw new Error(`Target folder ${targetFolder} already exists.`);
 
+            console.log("Making target folder: " + targetFolder);
             this.makeDirP(targetFolder);
 
             try {
@@ -58,11 +59,13 @@ export class FileCopier {
                     if (targetStats && targetStats.isDirectory())
                         throw new Error(`Target "${targetPath}" is a directory`);
                     
-                    // The below will overwrite whatever is in the target path
-                    if (process.platform == 'win32' && targetStats && (targetStats.mode & 146) != 146) 
-                        fs.chmodSync(targetPath, targetStats.mode | 146); // 146 => public read/write
-                    
-                    tl.cp(file, targetPath, "-f");
+                    if (targetStats) { // file already exists
+                        console.log(tl.loc('FileAlreadyExistAt', file, targetPath));
+                    }
+                    else {
+                        console.log(tl.loc('CopyingTo', file, targetPath));
+                        tl.cp(file, targetPath);
+                    }
                 }
             } catch (err) {
                 tl.setResult(tl.TaskResult.Failed, err);

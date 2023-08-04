@@ -9,7 +9,7 @@
     "visibility": ["Build"],
     "version": {
         "Major": 0,
-        "Minor": 3,
+        "Minor": 7,
         "Patch": 0
     },
     "instanceNameFormat": "ms-resource:loc.instanceNameFormat",
@@ -43,6 +43,8 @@
         "ArchiveFileExistsButNotAFile": "ms-resource:loc.messages.ArchiveFileExistsButNotAFile",
         "FailedArchiveFile": "ms-resource:loc.messages.FailedArchiveFile",
         "FoundNFiles": "ms-resource:loc.messages.FoundNFiles",
+        "FileAlreadyExistAt": "ms-resource:loc.messages.FileAlreadyExistAt",
+        "CopyingTo": "ms-resource:loc.messages.CopyingTo",
         "ArchivingFile": "ms-resource:loc.messages.ArchivingFile",
         "MoreFiles": "ms-resource:loc.messages.MoreFiles"
     }

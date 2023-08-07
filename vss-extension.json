@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "logicapps-standard-build-and-release",
     "publisher": "vikramb",
-    "version": "1.0.8",
+    "version": "1.0.14",
     "name": "Azure Logic Apps Standard Build & Release",
     "description": "Build and Release tasks for Azure Logic Apps Standard",
     "public": false,

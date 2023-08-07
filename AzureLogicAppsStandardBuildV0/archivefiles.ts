@@ -23,10 +23,13 @@ export class FileArchiver {
             this.defaultWorkingDir, '_output'
         ).trim())); // $(System.DefaultWorkingDirectory)/_output
 
-        if (archiveFile === undefined)
+        if (archiveFile === defaultWorkingDir)
             this.archiveFile = path.normalize(path.join(this.stagingDir, this.buildId + '.zip').trim()); // $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
-        else
+        else if (archiveFile !== undefined)
             this.archiveFile = archiveFile;
+        else
+            throw new Error('Archive file name undefined.');
+        tl.debug("Archive file path: " + this.archiveFile);
     }
 
     /**
@@ -64,17 +67,18 @@ export class FileArchiver {
                 }
             }
 
-            console.log("Root folder to archive: ", this.rootFolderOrFile);
-
             // Find matching archive files
             var files: string[] = this.findFiles();
             utils.reportArchivePlan(files).forEach(line => console.log(line));
 
+            tl.debug(`Listing all ${files.length} files to archive:`);
             files.forEach(file => tl.debug(file));
 
             // Ensure output folder exists
             var destinationFolder = path.dirname(this.archiveFile);
+            tl.debug("Checking for archive destination folder:" + destinationFolder);
             if (!tl.exist(destinationFolder)) {
+                tl.debug("Destination folder does not exist, creating:" + destinationFolder);
                 tl.mkdirP(destinationFolder);
             }
 
@@ -82,6 +86,7 @@ export class FileArchiver {
 
             tl.setResult(tl.TaskResult.Succeeded, 'Successfully created archive: ' + this.archiveFile);
         } catch (err) {
+            tl.debug(err.message);
             tl.error(err);
             tl.setResult(tl.TaskResult.Failed, err.message);
         }
@@ -123,8 +128,6 @@ export class FileArchiver {
         sevenZip.arg('-t' + compression);
         sevenZip.arg('-mx=5'); // normal compression (default)
         sevenZip.arg(archive);
-
-        console.log("hello? HELLO??");
     
         const fileList: string = this.createFileList(files);
         sevenZip.arg('@' + fileList);
@@ -139,7 +142,6 @@ export class FileArchiver {
         tl.debug('Creating archive with zip: ' + archive);
         var zip = tl.tool(tl.which('zip', true));
         zip.arg('-r');
-        zip.arg('-q');
         zip.arg(archive);
         for (var i = 0; i < files.length; i++) {
             zip.arg(files[i]);
@@ -153,6 +155,7 @@ export class FileArchiver {
      */
     private handleExecResult(execResult: tr.IExecSyncResult, archive: string) {
         if (execResult.code != tl.TaskResult.Succeeded) {
+            tl.debug('execResult: ' + JSON.stringify(execResult));
             throw new Error(tl.loc('ArchiveCreationFailedWithError', archive, execResult.code, execResult.stdout, execResult.stderr, execResult.error));
         }
     }
@@ -197,15 +200,15 @@ export class FileArchiver {
      */
     private getZippingParams(): tr.IExecSyncOptions {
         var dirName: string;
-        var stats: tl.FsStats = tl.stats(this.rootFolderOrFile);
 
+        var stats: tl.FsStats = tl.stats(this.rootFolderOrFile);
         if (stats.isFile()) {
             dirName = path.dirname(this.rootFolderOrFile);
         } 
         else {
             dirName = this.rootFolderOrFile;
         }
-
+        tl.debug("cwd (exclude root folder)= " + dirName);
         return { cwd: dirName, outStream: process.stdout as stream.Writable, errStream: process.stderr as stream.Writable };
     }
 }

@@ -15,7 +15,6 @@ export class AzureLogicAppsStandardBuild {
 
     public static async main(): Promise<void> {
         try {
-            console.log("HERE2");
             // Set up localization
             tl.setResourcePath(path.join(__dirname, 'task.json'));
 
@@ -27,25 +26,22 @@ export class AzureLogicAppsStandardBuild {
             // Get input for source folder
             this.sourceFolder = tl.getPathInputRequired('sourceFolder');
             this.archiveFile = tl.getPathInput('archiveFile');
-
-            console.log("HERE");
+            console.log("Archive file inputted: " + this.archiveFile);
 
             // Copy files
-            const fileCopier = new FileCopier(this.sourceFolder);
+            const fileCopier = new FileCopier(this.sourceFolder, this.defaultWorkingDir);
             try {
                 fileCopier.Copy();
             } catch (err) {
                 tl.setResult(tl.TaskResult.Failed, err);
             }
             console.log("Copied files.");
-            console.log("Really");
 
             // Archive files
             const fileArchiver = new FileArchiver(this.defaultWorkingDir, this.archiveFile, this.artifactStagingDir, this.buildId);
             try {
                 fileArchiver.Archive();
             } catch (err) {
-                console.log("failed archiver");
                 tl.setResult(tl.TaskResult.Failed, err);
             }
             console.log("Archived files.");

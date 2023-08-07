@@ -5,9 +5,11 @@ import tl = require('azure-pipelines-task-lib/task');
 
 export class FileCopier {
     private sourceFolder: string;
+    private defaultWorkingDir: string;
 
-    constructor(sourceFolder: string) {
+    constructor(sourceFolder: string, defaultWorkingDir: string) {
         this.sourceFolder = sourceFolder;
+        this.defaultWorkingDir = defaultWorkingDir;
     }
 
     /**
@@ -23,7 +25,7 @@ export class FileCopier {
         };
 
         let contents: string[] = ["**"]; // glob pattern matching - meant to match all paths in source directory
-        let targetFolder: string = path.join(this.sourceFolder, "..", "_output"); // may be better to use format specific to Logic Apps or temporary UID
+        let targetFolder: string = path.join(this.defaultWorkingDir, "_output"); // may be better to use format specific to Logic Apps or temporary UID
 
         this.sourceFolder = path.normalize(this.sourceFolder); // important for determing relative paths of files later on
         let allPaths: string[] = tl.find(this.sourceFolder, findOptions);
@@ -31,14 +33,12 @@ export class FileCopier {
         let matchedPaths: string[] = tl.match(allPaths, contents, sourceFolderPattern); // currently doesn't ignore files in .funcignore
         let matchedFiles: string[] = this.filterOutDirectories(matchedPaths);
 
-        if (matchedFiles.length > 0) {
-            // Check that target folder doesn't already exist
-            const targetFolderStats: fs.Stats = this.getPathStats(targetFolder);
-            if (targetFolderStats)
-                throw new Error(`Target folder ${targetFolder} already exists.`);
+        // copy the files to the target folder
+        console.log(tl.loc('FoundNFiles', matchedFiles.length));
 
-            console.log("Making target folder: " + targetFolder);
+        if (matchedFiles.length > 0) {
             this.makeDirP(targetFolder);
+            console.log("Created target directory: " + targetFolder);
 
             try {
                 let createdFolders: { [folder: string]: boolean } = {};
@@ -55,9 +55,9 @@ export class FileCopier {
                         createdFolders[targetDir] = true;
                     }
 
-                    let targetStats: fs.Stats = this.getPathStats(targetPath);
+                    let targetStats: fs.Stats | null = this.getPathStats(targetPath);
                     if (targetStats && targetStats.isDirectory())
-                        throw new Error(`Target "${targetPath}" is a directory`);
+                        throw new Error(tl.loc('TargetIsDir', file, targetPath));
                     
                     if (targetStats) { // file already exists
                         console.log(tl.loc('FileAlreadyExistAt', file, targetPath));
@@ -80,8 +80,8 @@ export class FileCopier {
      */
     private filterOutDirectories(paths: string[]): string[] {
         return paths.filter((path: string) => {
-            const itemStats: fs.Stats = this.getPathStats(path);
-            return !itemStats.isDirectory();
+            const itemStats: fs.Stats | null = this.getPathStats(path);
+            return itemStats && !itemStats.isDirectory();
         });
     }
 
@@ -91,14 +91,14 @@ export class FileCopier {
      * @param path path for which method will try to get `fs.Stats`.
      * @returns `fs.Stats` or `null`
      */
-    private getPathStats(path: string): fs.Stats {
+    private getPathStats(path: string): fs.Stats | null {
         if (fs.existsSync(path)) {
             return fs.statSync(path);
         }
         else {
             const message: string = `Entry "${path}" does not exist`;
-            tl.warning(message);
-            throw new Error(message);
+            tl.debug(message);
+            return null;
         }
     }
 

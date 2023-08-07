@@ -9,7 +9,7 @@
     "category": "Utility",
     "version": {
         "Major": 0,
-        "Minor": 7,
+        "Minor": 13,
         "Patch": 0
     },
     "instanceNameFormat": "Azure Logic Apps Build",
@@ -43,6 +43,7 @@
         "ArchiveFileExistsButNotAFile": "Specified archive file: %s already exists and is not a file.",
         "FailedArchiveFile": "Specified archive file: %s cannot be created because it cannot be accessed: %s",
         "FoundNFiles": "Found %d files",
+        "TargetIsDir": "Unable to copy file %s to %s. The target path already exists as a directory.",
         "FileAlreadyExistAt": "File %s already exist at %s",
         "CopyingTo": "Copying %s to %s",
         "ArchivingFile": "Archiving file: %s",
